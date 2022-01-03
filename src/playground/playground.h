@@ -30,7 +30,8 @@ float curr_y;
 float curr_angle;
 
 //global variables to handle daytime
-float daytime;
+int daytime;
+float daysection; //float because of calculations
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop

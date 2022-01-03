@@ -43,8 +43,9 @@ int main(void)
     curr_y = -135;
     curr_angle = -20.15;
 
-    //initialize daytime variable
+    //initialize daytime variables
     daytime = 0;
+    daysection = 0;
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -78,6 +79,9 @@ void updateAnimationLoop()
     // Update the variables for movement / rotation if a key was pressed
     if (glfwGetKey(window, GLFW_KEY_A)) daycycle(-1);
     else if (glfwGetKey(window, GLFW_KEY_D)) daycycle(1);
+    std::cout << daytime << std::endl;
+    std::cout << "--" << std::endl;
+    std::cout << daysection << std::endl;
 
     // Update the MVP transformation with the new values
     updateMVPTransformation();
@@ -158,7 +162,7 @@ bool initializeWindow()
     glfwSetInputMode(window, GLFW_STICKY_KEYS, GL_TRUE);
 
     // Dark blue background
-    glClearColor(0.0f, 0.0f, 0.4f, 0.0f);
+    glClearColor(0.45f, 0.8f, 1.0f, 1.0f);
     return true;
 }
 
@@ -251,33 +255,90 @@ void loadSTLFile(std::vector< glm::vec3 >& vertices,
 }
 
 void daycycle(int direction) {
+
     if (daytime < 0) {
         daytime = 359;
     }
 
-    if (daytime < 30) {
-        glClearColor(1.0, 0.6, 0.1, 1.0);
+    if (daytime < 120) { // day
+        glClearColor(0.45, 0.8, 1.0, 1.0); //skyblue
         daytime += direction;
     }
-    else if (daytime < 150){
-        glClearColor(0.45, 0.8, 1.0, 1.0);
+    else if (daytime < 135){ //day to evening
+        if (daysection >= 15) { daysection = 0; } //only want to interpolate in this section of the daytime
+        if (daysection < 0) { daysection = 14; }
+        float nDaysection = daysection / 15; //normalize to get a interpolation ratio
+        glm::vec4 c1 = vec4(0.45, 0.8, 1.0, 1.0); //skyblue to
+        glm::vec4 c2 = vec4(1.0, 0.6, 0.1, 1.0); //orange
+        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
+        glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
+        daytime += direction;
+        daysection += direction;
+    }
+    else if (daytime < 165) { //evening
+        glClearColor(1.0f, 0.6f, 0.1f, 1.0f);
         daytime += direction;
     }
-    else if (daytime < 190) {
-        glClearColor(1.0, 0.6, 0.1, 1.0);
+    else if (daytime < 180) { //evening to night
+        if (daysection >= 15) { daysection = 0; }
+        if (daysection < 0) { daysection = 14; }
+        float nDaysection = daysection / 15;
+        glm::vec4 c1 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange to
+        glm::vec4 c2 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue
+        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
+        glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
         daytime += direction;
+        daysection += direction;
     }
-    else if (daytime < 330) {
+    else if (daytime < 300) { //night
         glClearColor(0.08, 0.05, 0.25, 1.0);
         daytime += direction;
     }
-    else if (daytime < 360) {
-        glClearColor(1.0, 0.6, 0.1, 1.0);
+    else if (daytime < 315) { //night to morning
+        if (daysection >= 15) { daysection = 0; }
+        if (daysection < 0) { daysection = 14; }
+        float nDaysection = daysection / 15;
+        glm::vec4 c1 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue to
+        glm::vec4 c2 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange
+        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
+        glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
+        daytime += direction;
+        daysection += direction;
+    }
+    else if (daytime < 345) { //morning
+        glClearColor(1.0f, 0.6f, 0.1f, 1.0f);
         daytime += direction;
     }
-    else if (daytime == 360) {
+    else if (daytime < 360) { //morning to day
+        if (daysection >= 30) { daysection = 0; }
+        if (daysection < 0) { daysection = 29; }
+        float nDaysection = daysection / 30;
+        glm::vec4 c1 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange to
+        glm::vec4 c2 = vec4(0.45f, 0.8f, 1.0f, 1.0f); //skyblue
+        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
+        glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
+        daytime += direction;
+        daysection += direction;
+    }
+    else if (daytime >= 360) {
         daytime = 0;
     }
+    
+
+    //Test interpolation
+    /*
+    if (daytime == 61) daytime = 0;
+    float nDaytime = daytime / 60;
+    glm::vec4 c1 = vec4(1.0, 1.0, 0.0, 1.0);
+    glm::vec4 c2 = vec4(0.0, 0.0, 1.0, 1.0);
+    glm::vec4 c3 = interpolateLinear(c1, c2, nDaytime);
+    glClearColor(c3[0], c3[1], c3[2], c3[3]);
+    daytime++;
+    */
 }
 
 glm::vec4 rgb2hsl(glm::vec4 color) {
