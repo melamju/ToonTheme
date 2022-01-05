@@ -8,10 +8,13 @@ in vec3 fNormal;
 in vec3 fPosition;
 in vec3 fLight;
 
+//constant data
+uniform vec3 directionLight;
+
 void main()
 {
   //Light source and vertex information
-  vec3 lightDirection = normalize(fLight);
+  vec3 lightDirection = normalize(fLight) + directionLight;
   vec3 v = normalize(fPosition);       
   vec3 N = normalize(fNormal);
   

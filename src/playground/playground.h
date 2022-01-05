@@ -32,6 +32,7 @@ float curr_angle;
 //global variables to handle daytime
 int daytime;
 float daysection; //float because of calculations
+glm::vec3 directionLight;
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop

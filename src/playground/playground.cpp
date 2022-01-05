@@ -46,6 +46,7 @@ int main(void)
     //initialize daytime variables
     daytime = 0;
     daysection = 0;
+    directionLight = glm::vec3(-100.0, 1.0, 1.0);
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -79,9 +80,7 @@ void updateAnimationLoop()
     // Update the variables for movement / rotation if a key was pressed
     if (glfwGetKey(window, GLFW_KEY_A)) daycycle(-1);
     else if (glfwGetKey(window, GLFW_KEY_D)) daycycle(1);
-    std::cout << daytime << std::endl;
-    std::cout << "--" << std::endl;
-    std::cout << daysection << std::endl;
+
 
     // Update the MVP transformation with the new values
     updateMVPTransformation();
@@ -90,6 +89,7 @@ void updateAnimationLoop()
     // in the "MVP" uniform and also the "MV" uniform
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(MatrixIDMV, 1, GL_FALSE, &MV[0][0]);
+    glUniform3f(glGetUniformLocation(programID, "directionLight"), directionLight[0], directionLight[1], directionLight[2]);
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
