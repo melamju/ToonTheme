@@ -54,7 +54,7 @@ void loadSTLFile(std::vector< glm::vec3 >& vertices, std::vector< glm::vec3 >& n
 
 //Toon Theme Methods
 void daycycle(int direction);
-void directionChecker(int direction);
+void directionChecker(int direction); // to set some values which need to know direction
 
 //needed for color interpolation
 glm::vec4 rgb2hsl(glm::vec4 color); 

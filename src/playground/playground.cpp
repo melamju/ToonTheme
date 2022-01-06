@@ -80,13 +80,8 @@ void updateAnimationLoop()
     glUseProgram(programID);
 
     // Update the variables for movement / rotation if a key was pressed
-    if (glfwGetKey(window, GLFW_KEY_A)) { daycycle(-1); lightcycle(-1); }
-    else if (glfwGetKey(window, GLFW_KEY_D)) { daycycle(1); lightcycle(1); }
-    
-    std::cout << daytime << std::endl;
-    std::cout << daysection << std::endl;
-    std::cout << "" << std::endl;
-
+    if (glfwGetKey(window, GLFW_KEY_A)) { daycycle(-1); lightcycle(-1); } // -1 counterclockwise
+    else if (glfwGetKey(window, GLFW_KEY_D)) { daycycle(1); lightcycle(1); } // 1 clockwise
 
     // Update the MVP transformation with the new values
     updateMVPTransformation();
@@ -416,8 +411,22 @@ float circleFunction(float x, int radius) {
 }
 
 void lightcycle(int direction) {
+    if (lightPosX < -100) { // change to sun/moon
+        lightPosX = 100.00;
+
+        if (isDay) { isDay = false; }
+        else if (isDay == false) { isDay = true; }
+    }
+    if (lightPosX > 100) { 
+        lightPosX = -100.00;
+
+        if (isDay) { isDay = false; }
+        else if (isDay == false) { isDay = true; }
+    }
     directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 100), 1.0);
     lightPosX += direction;
+
+    std::cout << isDay << std::endl;
 
 }
 
