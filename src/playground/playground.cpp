@@ -44,9 +44,11 @@ int main(void)
     curr_angle = -20.15;
 
     //initialize daytime variables
-    daytime = 0;
+    daytime = 90; //start of the day
     daysection = 0;
-    directionLight = glm::vec3(-100.0, 1.0, 1.0);
+    lightPosX = -65.0;
+    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 100), 1.0);
+    isDay = true;
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -78,8 +80,12 @@ void updateAnimationLoop()
     glUseProgram(programID);
 
     // Update the variables for movement / rotation if a key was pressed
-    if (glfwGetKey(window, GLFW_KEY_A)) daycycle(-1);
-    else if (glfwGetKey(window, GLFW_KEY_D)) daycycle(1);
+    if (glfwGetKey(window, GLFW_KEY_A)) { daycycle(-1); lightcycle(-1); }
+    else if (glfwGetKey(window, GLFW_KEY_D)) { daycycle(1); lightcycle(1); }
+    
+    std::cout << daytime << std::endl;
+    std::cout << daysection << std::endl;
+    std::cout << "" << std::endl;
 
 
     // Update the MVP transformation with the new values
@@ -87,6 +93,7 @@ void updateAnimationLoop()
 
     // Send our transformation to the currently bound shader, 
     // in the "MVP" uniform and also the "MV" uniform
+    // Send custom light direction
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(MatrixIDMV, 1, GL_FALSE, &MV[0][0]);
     glUniform3f(glGetUniformLocation(programID, "directionLight"), directionLight[0], directionLight[1], directionLight[2]);
@@ -260,63 +267,17 @@ void daycycle(int direction) {
         daytime = 359;
     }
 
-    if (daytime < 120) { // day
-        glClearColor(0.45, 0.8, 1.0, 1.0); //skyblue
-        daytime += direction;
-    }
-    else if (daytime < 135){ //day to evening
-        if (daysection >= 15) { daysection = 0; } //only want to interpolate in this section of the daytime
-        if (daysection < 0) { daysection = 14; }
-        float nDaysection = daysection / 15; //normalize to get a interpolation ratio
-        glm::vec4 c1 = vec4(0.45, 0.8, 1.0, 1.0); //skyblue to
-        glm::vec4 c2 = vec4(1.0, 0.6, 0.1, 1.0); //orange
-        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
-        glClearColor(c3[0], c3[1], c3[2], c3[3]);
-
-        daytime += direction;
-        daysection += direction;
-    }
-    else if (daytime < 165) { //evening
-        glClearColor(1.0f, 0.6f, 0.1f, 1.0f);
-        daytime += direction;
-    }
-    else if (daytime < 180) { //evening to night
-        if (daysection >= 15) { daysection = 0; }
-        if (daysection < 0) { daysection = 14; }
-        float nDaysection = daysection / 15;
-        glm::vec4 c1 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange to
-        glm::vec4 c2 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue
-        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
-        glClearColor(c3[0], c3[1], c3[2], c3[3]);
-
-        daytime += direction;
-        daysection += direction;
-    }
-    else if (daytime < 300) { //night
+    if (daytime < 30) { //night
         glClearColor(0.08, 0.05, 0.25, 1.0);
         daytime += direction;
+        directionChecker(direction);
+        isDay = false;
     }
-    else if (daytime < 315) { //night to morning
-        if (daysection >= 15) { daysection = 0; }
-        if (daysection < 0) { daysection = 14; }
-        float nDaysection = daysection / 15;
+    else if (daytime < 90) { //night to day
+        if (daysection >= 60) { daysection = 0; }
+        if (daysection < 0) { daysection = 59; } //only want to interpolate in this section of the daytime
+        float nDaysection = daysection / 60; //normalize to get a interpolation ratio
         glm::vec4 c1 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue to
-        glm::vec4 c2 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange
-        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
-        glClearColor(c3[0], c3[1], c3[2], c3[3]);
-
-        daytime += direction;
-        daysection += direction;
-    }
-    else if (daytime < 345) { //morning
-        glClearColor(1.0f, 0.6f, 0.1f, 1.0f);
-        daytime += direction;
-    }
-    else if (daytime < 360) { //morning to day
-        if (daysection >= 30) { daysection = 0; }
-        if (daysection < 0) { daysection = 29; }
-        float nDaysection = daysection / 30;
-        glm::vec4 c1 = vec4(1.0f, 0.6f, 0.1f, 1.0f); //orange to
         glm::vec4 c2 = vec4(0.45f, 0.8f, 1.0f, 1.0f); //skyblue
         glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
         glClearColor(c3[0], c3[1], c3[2], c3[3]);
@@ -324,21 +285,35 @@ void daycycle(int direction) {
         daytime += direction;
         daysection += direction;
     }
+    else if (daytime < 210) { // day
+        glClearColor(0.45, 0.8, 1.0, 1.0); //skyblue
+        daytime += direction;
+        daysection = 0;
+        directionChecker(direction);
+        isDay = true;
+    }
+    else if (daytime < 270) { //day to night
+        if (daysection >= 60) { daysection = 0; }
+        if (daysection < 0) { daysection = 59; } //only want to interpolate in this section of the daytime
+        float nDaysection = daysection / 60; //normalize to get a interpolation ratio
+        glm::vec4 c1 = vec4(0.45, 0.8, 1.0, 1.0); //skyblue to
+        glm::vec4 c2 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue
+        glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
+        glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
+        daytime += direction;
+        daysection += direction;
+    }
+    else if (daytime < 360) { //night
+        glClearColor(0.08, 0.05, 0.25, 1.0);
+        daytime += direction;
+        directionChecker(direction);
+        isDay = false;
+    }
     else if (daytime >= 360) {
         daytime = 0;
     }
     
-
-    //Test interpolation
-    /*
-    if (daytime == 61) daytime = 0;
-    float nDaytime = daytime / 60;
-    glm::vec4 c1 = vec4(1.0, 1.0, 0.0, 1.0);
-    glm::vec4 c2 = vec4(0.0, 0.0, 1.0, 1.0);
-    glm::vec4 c3 = interpolateLinear(c1, c2, nDaytime);
-    glClearColor(c3[0], c3[1], c3[2], c3[3]);
-    daytime++;
-    */
 }
 
 glm::vec4 rgb2hsl(glm::vec4 color) {
@@ -434,4 +409,23 @@ glm::vec4 interpolateLinear(glm::vec4 color1, glm::vec4 color2, float ratio) {
 
     res = hsl2rgb(res);
     return res;
+}
+
+float circleFunction(float x, int radius) {
+    return abs(sqrt(pow(radius, 2) - pow(x, 2)));
+}
+
+void lightcycle(int direction) {
+    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 100), 1.0);
+    lightPosX += direction;
+
+}
+
+void directionChecker(int direction){
+    if (direction == -1) {
+        daysection = 59;
+    }
+    else {
+        daysection = 0;
+    }
 }

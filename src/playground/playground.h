@@ -33,6 +33,8 @@ float curr_angle;
 int daytime;
 float daysection; //float because of calculations
 glm::vec3 directionLight;
+float lightPosX;
+bool isDay;
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
@@ -52,12 +54,17 @@ void loadSTLFile(std::vector< glm::vec3 >& vertices, std::vector< glm::vec3 >& n
 
 //Toon Theme Methods
 void daycycle(int direction);
+void directionChecker(int direction);
 
 //needed for color interpolation
 glm::vec4 rgb2hsl(glm::vec4 color); 
 glm::vec4 hsl2rgb(glm::vec4 color);
 float hsl2rgbHelper(float p, float q, float t);
 glm::vec4 interpolateLinear(glm::vec4 color1, glm::vec4 color2, float ratio);
+
+// sun/moon position
+float circleFunction(float x, int radius);
+void lightcycle(int direction);
 
 
 #endif
