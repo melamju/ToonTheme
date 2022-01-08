@@ -481,13 +481,6 @@ void lightcycle(int direction) {
         }
     }
 
-
-    //Debug
-    std::cout << "dt: " << daytime << std::endl;
-    std::cout << "s: " << shininess << std::endl;
-    std::cout << "lp: " << lightPosX << std::endl;
-    std::cout << "" << std::endl;
-
 }
 
 void directionChecker(int direction){
