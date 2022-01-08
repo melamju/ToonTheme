@@ -8,8 +8,10 @@ in vec3 fNormal;
 in vec3 fPosition;
 in vec3 fLight;
 
-//constant data
+//Data from playground
 uniform vec3 directionLight;
+uniform bool isDay;
+uniform float shininess;
 
 void main()
 {
@@ -19,11 +21,18 @@ void main()
   vec3 N = normalize(fNormal);
   
   //Material parameters
-  vec3 materialColor = vec3(0.752,0.752,0.752);
+  vec3 materialColor;
+
+  if (isDay == false){
+	materialColor = vec3(0.752,0.752,0.752) + vec3(-0.4, -0.4, -0.3);
+  }
+  else {
+	materialColor = vec3(0.752,0.752,0.752);
+  }
+
   float ka = 0.1;
   float ks = 0.7;
   float kd = 0.3;
-  float shininess = 10.0;
   
   //Compute vectors for light model
   vec3 L = normalize(lightDirection - v);   

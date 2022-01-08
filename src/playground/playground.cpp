@@ -46,9 +46,10 @@ int main(void)
     //initialize daytime variables
     daytime = 90; //start of the day
     daysection = 0;
-    lightPosX = -65.0;
-    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 100), 1.0);
+    lightPosX = -60.0;
+    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 90), 1.0);
     isDay = true;
+    shininess = 10.0;
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -88,10 +89,12 @@ void updateAnimationLoop()
 
     // Send our transformation to the currently bound shader, 
     // in the "MVP" uniform and also the "MV" uniform
-    // Send custom light direction
+    // Send custom light information
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(MatrixIDMV, 1, GL_FALSE, &MV[0][0]);
-    glUniform3f(glGetUniformLocation(programID, "directionLight"), directionLight[0], directionLight[1], directionLight[2]);
+    glUniform3f(glGetUniformLocation(programID, "directionLight"), directionLight[0], directionLight[1], directionLight[2]); //send vec3
+    glUniform1i(glGetUniformLocation(programID, "isDay"), isDay); //send bool, same for integer
+    glUniform1f(glGetUniformLocation(programID, "shininess"), shininess); //send float
 
     // 1rst attribute buffer : vertices
     glEnableVertexAttribArray(0);
@@ -277,6 +280,9 @@ void daycycle(int direction) {
         glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
         glClearColor(c3[0], c3[1], c3[2], c3[3]);
 
+        if (direction == -1 && daytime < 40) { isDay = false; }
+        if (direction == 1 && daytime > 40) { isDay = true; }
+
         daytime += direction;
         daysection += direction;
     }
@@ -295,6 +301,9 @@ void daycycle(int direction) {
         glm::vec4 c2 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue
         glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
         glClearColor(c3[0], c3[1], c3[2], c3[3]);
+
+        if (direction == -1 && daytime < 235) { isDay = true; }
+        if (direction == 1 && daytime > 235) { isDay = false; }
 
         daytime += direction;
         daysection += direction;
@@ -411,26 +420,54 @@ float circleFunction(float x, int radius) {
 }
 
 void lightcycle(int direction) {
-    if (lightPosX < -100) { // change to sun/moon
-        lightPosX = 100.00;
-
-        if (isDay) { isDay = false; }
-        else if (isDay == false) { isDay = true; }
+    if (lightPosX < -90) { // change to sun/moon
+        lightPosX = 90.00;
     }
-    if (lightPosX > 100) { 
-        lightPosX = -100.00;
-
-        if (isDay) { isDay = false; }
-        else if (isDay == false) { isDay = true; }
+    if (lightPosX > 90) { 
+        lightPosX = -90.00;
     }
-    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 100), 1.0);
+    directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 90), 1.0);
     lightPosX += direction;
 
-    std::cout << isDay << std::endl;
+    //simulating more realistical sun-/moonset trough higher shininess => smaller specular light dot => weaker sun/moon
+    if (direction == 1) {
+        if (lightPosX <= -89) shininess = 70.0;
+
+        if (lightPosX < -60 && lightPosX > -92) {
+            shininess -= direction * 2;
+        }
+        else if (lightPosX > 60 && lightPosX < 92) {
+            shininess += direction * 2;
+        }
+        else {
+            shininess = 10.0;
+        }
+    } 
+    else if (direction == -1){
+        if (lightPosX >= 89) shininess = 70.0;
+
+        if (lightPosX > 60 && lightPosX < 92) {
+            shininess -= abs(direction) * 2;
+        }
+        else if (lightPosX < -60 && lightPosX > -92) {
+            shininess += abs(direction) * 2;
+        }
+        else {
+            shininess = 10.0;
+        }
+    }
+
+
+    //Debug
+    std::cout << "dt: " << daytime << std::endl;
+    std::cout << "s: " << shininess << std::endl;
+    std::cout << "lp: " << lightPosX << std::endl;
+    std::cout << "" << std::endl;
 
 }
 
 void directionChecker(int direction){
+    //for daysection
     if (direction == -1) {
         daysection = 59;
     }

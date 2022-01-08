@@ -35,6 +35,7 @@ float daysection; //float because of calculations
 glm::vec3 directionLight;
 float lightPosX;
 bool isDay;
+float shininess;
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
