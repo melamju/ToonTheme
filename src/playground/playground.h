@@ -34,8 +34,9 @@ int daytime;
 float daysection; //float because of calculations
 glm::vec3 directionLight;
 float lightPosX;
-bool isDay;
 float shininess;
+glm::vec3 materialColor;
+glm::vec3 saveMC;
 
 int main(void); //<<< main function, called at startup
 void updateAnimationLoop(); //<<< updates the animation loop
@@ -61,7 +62,8 @@ void directionChecker(int direction); // to set some values which need to know d
 glm::vec4 rgb2hsl(glm::vec4 color); 
 glm::vec4 hsl2rgb(glm::vec4 color);
 float hsl2rgbHelper(float p, float q, float t);
-glm::vec4 interpolateLinear(glm::vec4 color1, glm::vec4 color2, float ratio);
+glm::vec4 interpolateLinear(glm::vec4 color1, glm::vec4 color2, float ratio); //with HSL , often looks better than interpolationg RGB, because you don't interpolate over grey
+glm::vec4 interpolateLinearRGB(glm::vec4 color1, glm::vec4 color2, float ratio); //with RGB
 
 // sun/moon position
 float circleFunction(float x, int radius);

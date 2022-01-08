@@ -48,8 +48,9 @@ int main(void)
     daysection = 0;
     lightPosX = -60.0;
     directionLight = glm::vec3(lightPosX, circleFunction(lightPosX, 90), 1.0);
-    isDay = true;
     shininess = 10.0;
+    materialColor = glm::vec3(0.752, 0.752, 0.752);
+    saveMC = materialColor;
 
     // Enable depth test
     glEnable(GL_DEPTH_TEST);
@@ -93,7 +94,7 @@ void updateAnimationLoop()
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &MVP[0][0]);
     glUniformMatrix4fv(MatrixIDMV, 1, GL_FALSE, &MV[0][0]);
     glUniform3f(glGetUniformLocation(programID, "directionLight"), directionLight[0], directionLight[1], directionLight[2]); //send vec3
-    glUniform1i(glGetUniformLocation(programID, "isDay"), isDay); //send bool, same for integer
+    glUniform3f(glGetUniformLocation(programID, "materialColor"), materialColor[0], materialColor[1], materialColor[2]); //send vec3
     glUniform1f(glGetUniformLocation(programID, "shininess"), shininess); //send float
 
     // 1rst attribute buffer : vertices
@@ -267,52 +268,65 @@ void daycycle(int direction) {
 
     if (daytime < 30) { //night
         glClearColor(0.08, 0.05, 0.25, 1.0);
+        materialColor = saveMC + glm::vec3(-0.4, -0.4, -0.3);
+
         daytime += direction;
         directionChecker(direction);
-        isDay = false;
     }
     else if (daytime < 90) { //night to day
         if (daysection >= 60) { daysection = 0; }
         if (daysection < 0) { daysection = 59; } //only want to interpolate in this section of the daytime
         float nDaysection = daysection / 60; //normalize to get a interpolation ratio
+
+        //interpolate background
         glm::vec4 c1 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue to
         glm::vec4 c2 = vec4(0.45f, 0.8f, 1.0f, 1.0f); //skyblue
         glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
         glClearColor(c3[0], c3[1], c3[2], c3[3]);
 
-        if (direction == -1 && daytime < 40) { isDay = false; }
-        if (direction == 1 && daytime > 40) { isDay = true; }
+        //interpolate materialColor
+        c1 = vec4((saveMC + glm::vec3(-0.4, -0.4, -0.3)), 1.0f); //materialColor with darkblue touch
+        c2 = vec4(saveMC, 1.0); //to materialColor
+        c3 = interpolateLinearRGB(c1, c2, nDaysection);
+        materialColor = glm::vec3(c3[0], c3[1], c3[2]);
 
         daytime += direction;
         daysection += direction;
     }
     else if (daytime < 210) { // day
         glClearColor(0.45, 0.8, 1.0, 1.0); //skyblue
+        materialColor = saveMC;
         daytime += direction;
         daysection = 0;
         directionChecker(direction);
-        isDay = true;
     }
     else if (daytime < 270) { //day to night
+    
         if (daysection >= 60) { daysection = 0; }
         if (daysection < 0) { daysection = 59; } //only want to interpolate in this section of the daytime
         float nDaysection = daysection / 60; //normalize to get a interpolation ratio
+
+        //interpolate background
         glm::vec4 c1 = vec4(0.45, 0.8, 1.0, 1.0); //skyblue to
         glm::vec4 c2 = vec4(0.08f, 0.05f, 0.25f, 1.0f); //nightblue
         glm::vec4 c3 = interpolateLinear(c1, c2, nDaysection);
         glClearColor(c3[0], c3[1], c3[2], c3[3]);
 
-        if (direction == -1 && daytime < 235) { isDay = true; }
-        if (direction == 1 && daytime > 235) { isDay = false; }
+        //interpolate materialColor
+        c1 = vec4(saveMC, 1.0); //materialColor to
+        c2 = vec4((saveMC + glm::vec3(-0.4, -0.4, -0.3)), 1.0f); //materialColor with darkblue touch
+        c3 = interpolateLinearRGB(c1, c2, nDaysection);
+        materialColor = glm::vec3(c3[0], c3[1], c3[2]);
 
         daytime += direction;
         daysection += direction;
     }
     else if (daytime < 360) { //night
         glClearColor(0.08, 0.05, 0.25, 1.0);
+        materialColor = saveMC + glm::vec3(-0.4, -0.4, -0.3);
+
         daytime += direction;
         directionChecker(direction);
-        isDay = false;
     }
     else if (daytime >= 360) {
         daytime = 0;
@@ -412,6 +426,16 @@ glm::vec4 interpolateLinear(glm::vec4 color1, glm::vec4 color2, float ratio) {
     }
 
     res = hsl2rgb(res);
+    return res;
+}
+
+glm::vec4 interpolateLinearRGB(glm::vec4 color1, glm::vec4 color2, float ratio) {
+    glm::vec4 res;
+
+    for (int i = 0; i < 3; i++) {
+        res[i] = color1[i] * (1 - ratio) + color2[i] * ratio;
+    }
+
     return res;
 }
 
