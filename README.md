@@ -1,6 +1,7 @@
 # Toon Theme
 
-This is a 3D-scene implemented in the OpenGL-Template.
+This is a 3D-scene implemented in the OpenGL-Template.  
+You can manipulate the light to make day or night and observe the behavior of the toon-shader on the model. 
 
 ## Shader
 This scene is focusing on the shader, which is a toon-shader, also known as cel-shader.  
