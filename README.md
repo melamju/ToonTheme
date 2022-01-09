@@ -16,3 +16,7 @@ You can manipulate the time of day (the light) of this scene.
 ## Executable
 You can find the executable file in ToonTheme.zip in the src folder.  
 After unzipping you go to the playground directory. There you can execute playground.exe.
+
+## Source
+Model: https://www.thingiverse.com/thing:3321707/files
+Changed a bit in blender.
